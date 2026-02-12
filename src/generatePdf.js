@@ -101,16 +101,16 @@ function drawImagePage(doc, dataUrl, index, accentColor, logoDataUrl) {
   // Full-bleed cover-fit image
   doc.addImage(dataUrl, 'JPEG', 0, 0, W, H);
 
-  // Gradient overlay at bottom
-  const gradientSteps = 40;
-  const gradientHeight = 50;
+  // Gradient overlay at bottom — use many thin steps for smooth result
+  const gradientSteps = 150;
+  const gradientHeight = 55;
+  const stepH = gradientHeight / gradientSteps;
   for (let i = 0; i < gradientSteps; i++) {
-    const alpha = (i / gradientSteps) * 0.7;
-    const y = H - gradientHeight + (i * gradientHeight) / gradientSteps;
-    const stepH = gradientHeight / gradientSteps + 0.5;
+    const alpha = (i / gradientSteps) * 0.75;
+    const y = H - gradientHeight + i * stepH;
     doc.setFillColor(0, 0, 0);
     doc.setGState(new doc.GState({ opacity: alpha }));
-    doc.rect(0, y, W, stepH, 'F');
+    doc.rect(0, y, W, stepH + 0.1, 'F'); // +0.1 to avoid sub-pixel gaps
   }
   doc.setGState(new doc.GState({ opacity: 1 }));
 
