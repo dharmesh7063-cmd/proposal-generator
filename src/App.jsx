@@ -10,16 +10,101 @@ const DEFAULT_BRANDING = {
   bgColor: '#0e0e0e',
 };
 
+// --- PDF Preview Components ---
+
+function PreviewCover({ branding, logoUrl }) {
+  return (
+    <div
+      className="w-full aspect-[297/210] rounded-lg overflow-hidden flex flex-col items-center justify-center gap-2 p-6"
+      style={{ backgroundColor: branding.bgColor }}
+    >
+      {logoUrl && <img src={logoUrl} alt="Logo" className="h-8 w-8 object-contain" />}
+      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
+      <p className="text-white text-[10px] sm:text-xs font-bold tracking-wider text-center">{branding.companyName}</p>
+      <p className="text-[7px] sm:text-[8px] text-gray-400 tracking-wider text-center">{branding.tagline}</p>
+      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
+      <div className="mt-2 text-center">
+        <p className="text-[6px] sm:text-[7px] text-gray-500">{branding.website}</p>
+        <p className="text-[6px] sm:text-[7px] text-gray-500">{branding.instagram}</p>
+      </div>
+    </div>
+  );
+}
+
+function PreviewTitle({ clientName, roomName, branding, logoUrl }) {
+  return (
+    <div
+      className="w-full aspect-[297/210] rounded-lg overflow-hidden flex flex-col items-center justify-center gap-1 p-6"
+      style={{ backgroundColor: branding.bgColor }}
+    >
+      {logoUrl && <img src={logoUrl} alt="Logo" className="h-6 w-6 object-contain mb-1" />}
+      <p className="text-[7px] sm:text-[8px] text-gray-400 tracking-widest">PROPOSAL 3D FOR</p>
+      <p className="text-white text-[10px] sm:text-sm font-bold tracking-wider text-center">
+        MR. {(clientName || '________').toUpperCase()}
+      </p>
+      <p className="text-[8px] sm:text-[10px] tracking-wider text-center" style={{ color: branding.accentColor }}>
+        {(roomName || '________').toUpperCase()}
+      </p>
+      <div className="w-10 h-px mt-1" style={{ backgroundColor: branding.accentColor }} />
+    </div>
+  );
+}
+
+function PreviewImage({ imageUrl, index, branding, logoUrl }) {
+  return (
+    <div className="w-full aspect-[297/210] rounded-lg overflow-hidden relative">
+      <img src={imageUrl} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
+      {/* Gradient overlay */}
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+      {/* View badge */}
+      <span
+        className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[6px] sm:text-[7px] font-bold text-white"
+        style={{ backgroundColor: branding.accentColor }}
+      >
+        VIEW {String(index + 1).padStart(2, '0')}
+      </span>
+      {/* Watermark */}
+      {logoUrl ? (
+        <img src={logoUrl} alt="Logo" className="absolute bottom-2 right-2 h-4 w-4 object-contain opacity-50" />
+      ) : (
+        <span className="absolute bottom-2 right-2 text-[5px] text-white/50">{branding.companyName}</span>
+      )}
+    </div>
+  );
+}
+
+function PreviewThankYou({ branding, logoUrl }) {
+  return (
+    <div
+      className="w-full aspect-[297/210] rounded-lg overflow-hidden flex flex-col items-center justify-center gap-2 p-6"
+      style={{ backgroundColor: branding.bgColor }}
+    >
+      {logoUrl && <img src={logoUrl} alt="Logo" className="h-7 w-7 object-contain" />}
+      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
+      <p className="text-white text-[10px] sm:text-xs font-bold tracking-wider">THANK YOU</p>
+      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
+      <div className="mt-2 text-center">
+        <p className="text-[6px] sm:text-[7px] text-gray-400">{branding.website}</p>
+        <p className="text-[6px] sm:text-[7px] text-gray-500">{branding.instagram}</p>
+      </div>
+    </div>
+  );
+}
+
+// --- Main App ---
+
 function App() {
   const [clientName, setClientName] = useState('');
   const [roomName, setRoomName] = useState('');
-  const [images, setImages] = useState([]); // { id, file, url, name }
+  const [images, setImages] = useState([]);
   const [branding, setBranding] = useState(DEFAULT_BRANDING);
+  const [logo, setLogo] = useState(null); // { file, url }
   const [brandingOpen, setBrandingOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
+  const logoInputRef = useRef(null);
   const idCounter = useRef(0);
 
   const addFiles = useCallback((files) => {
@@ -63,6 +148,19 @@ function App() {
     setDragOver(true);
   };
 
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    if (logo) URL.revokeObjectURL(logo.url);
+    setLogo({ file, url: URL.createObjectURL(file) });
+    e.target.value = '';
+  };
+
+  const removeLogo = () => {
+    if (logo) URL.revokeObjectURL(logo.url);
+    setLogo(null);
+  };
+
   const canGenerate = clientName.trim() && roomName.trim() && images.length >= 1;
 
   const handleGenerate = async () => {
@@ -75,6 +173,7 @@ function App() {
         roomName: roomName.trim(),
         imageSrcs: images.map((i) => i.url),
         branding,
+        logoSrc: logo?.url || null,
         onProgress: setProgress,
       });
     } catch (err) {
@@ -90,13 +189,7 @@ function App() {
     setBranding((prev) => ({ ...prev, [key]: value }));
   };
 
-  const totalPages = 2 + images.length + 1; // cover + title + images + thankyou
-  const pageLabels = [
-    'Cover',
-    'Title',
-    ...images.map((_, i) => `View ${String(i + 1).padStart(2, '0')}`),
-    'Thank You',
-  ];
+  const totalPages = 2 + images.length + 1;
 
   return (
     <div className="min-h-screen bg-bg text-text">
@@ -128,7 +221,7 @@ function App() {
         </div>
       )}
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
         {/* Client Details */}
         <section className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-text-muted">Client Details</h2>
@@ -271,7 +364,40 @@ function App() {
           </button>
 
           {brandingOpen && (
-            <div className="space-y-4 bg-surface border border-border rounded-xl p-5 animate-in">
+            <div className="space-y-4 bg-surface border border-border rounded-xl p-5">
+              {/* Logo Upload */}
+              <div>
+                <label className="block text-xs text-text-muted mb-1.5">Company Logo</label>
+                <div className="flex items-center gap-3">
+                  {logo ? (
+                    <div className="flex items-center gap-3">
+                      <img src={logo.url} alt="Logo" className="h-12 w-12 object-contain bg-bg rounded-lg border border-border p-1" />
+                      <button
+                        onClick={removeLogo}
+                        className="text-xs text-red-400 hover:text-red-300 transition cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => logoInputRef.current?.click()}
+                      className="text-xs px-3 py-2 rounded-lg border border-dashed border-border text-text-muted hover:text-text hover:border-accent transition cursor-pointer"
+                    >
+                      Upload Logo (PNG/SVG)
+                    </button>
+                  )}
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                </div>
+                <p className="text-[10px] text-text-muted/50 mt-1">Appears on cover, title, thank-you pages and as watermark on images</p>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-text-muted mb-1.5">Company Name</label>
@@ -337,7 +463,7 @@ function App() {
                 </div>
               </div>
               <button
-                onClick={() => setBranding(DEFAULT_BRANDING)}
+                onClick={() => { setBranding(DEFAULT_BRANDING); removeLogo(); }}
                 className="text-xs text-text-muted hover:text-accent transition cursor-pointer"
               >
                 Reset to defaults
@@ -346,35 +472,42 @@ function App() {
           )}
         </section>
 
-        {/* PDF Preview Summary */}
-        {images.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-text-muted">
-              PDF Preview ({totalPages} pages)
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {pageLabels.map((label, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1.5 rounded-full text-xs border"
-                  style={{
-                    borderColor: label === 'Cover' || label === 'Thank You'
-                      ? branding.accentColor + '66'
-                      : 'var(--color-border)',
-                    backgroundColor: label === 'Cover' || label === 'Thank You'
-                      ? branding.accentColor + '15'
-                      : 'var(--color-surface)',
-                    color: label === 'Cover' || label === 'Thank You'
-                      ? branding.accentColor
-                      : 'var(--color-text-muted)',
-                  }}
-                >
-                  {label}
-                </span>
-              ))}
+        {/* Live PDF Preview */}
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-text-muted">
+            PDF Preview ({totalPages} pages)
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {/* Cover */}
+            <div className="space-y-1.5">
+              <PreviewCover branding={branding} logoUrl={logo?.url} />
+              <p className="text-[10px] text-text-muted text-center">1 — Cover</p>
             </div>
-          </section>
-        )}
+
+            {/* Title */}
+            <div className="space-y-1.5">
+              <PreviewTitle clientName={clientName} roomName={roomName} branding={branding} logoUrl={logo?.url} />
+              <p className="text-[10px] text-text-muted text-center">2 — Title</p>
+            </div>
+
+            {/* Image pages */}
+            {images.map((img, i) => (
+              <div key={img.id} className="space-y-1.5">
+                <PreviewImage imageUrl={img.url} index={i} branding={branding} logoUrl={logo?.url} />
+                <p className="text-[10px] text-text-muted text-center">
+                  {i + 3} — View {String(i + 1).padStart(2, '0')}
+                </p>
+              </div>
+            ))}
+
+            {/* Thank You */}
+            <div className="space-y-1.5">
+              <PreviewThankYou branding={branding} logoUrl={logo?.url} />
+              <p className="text-[10px] text-text-muted text-center">{totalPages} — Thank You</p>
+            </div>
+          </div>
+        </section>
 
         {/* Validation Hints */}
         {!canGenerate && (
