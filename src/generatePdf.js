@@ -65,13 +65,19 @@ function imgToPngDataUrl(img) {
   return canvas.toDataURL('image/png');
 }
 
-// Page 1: Cover — hardcoded full-bleed image
+// Page 1: Cover — hardcoded full-bleed image + clickable links
 function drawCoverPage(doc, coverDataUrl) {
   doc.addImage(coverDataUrl, 'JPEG', 0, 0, W, H);
+
+  // Transparent clickable box over the terracotta area (bottom-right) — website
+  // The terracotta box in the cover image is roughly at: x=63%, y=78%, w=30%, h=18%
+  doc.link(W * 0.63, H * 0.78, W * 0.30, H * 0.10, { url: 'https://www.intaradesigns.com' });
+  // Instagram link below website
+  doc.link(W * 0.63, H * 0.88, W * 0.30, H * 0.10, { url: 'https://www.instagram.com/intara_designs' });
 }
 
 // Page 2: Title — solid beige bg, text positioned right-of-center
-function drawTitlePage(doc, clientName, roomName) {
+function drawTitlePage(doc, clientName, roomName, siteLocation) {
   // Solid beige background
   doc.setFillColor(TITLE_BG);
   doc.rect(0, 0, W, H, 'F');
@@ -94,6 +100,12 @@ function drawTitlePage(doc, clientName, roomName) {
   // Room name — normal weight, terracotta, with slight gap
   doc.setFontSize(14);
   doc.text(roomName.toUpperCase(), textX, textY + 28, { align: 'left' });
+
+  // Site location — smaller, below room name
+  if (siteLocation) {
+    doc.setFontSize(11);
+    doc.text(siteLocation.toUpperCase(), textX, textY + 42, { align: 'left' });
+  }
 }
 
 // Image pages: cover-fit centered image with gradient overlay, view badge, logo watermark
@@ -126,15 +138,18 @@ function drawImagePage(doc, dataUrl, index, accentColor, logoDataUrl) {
   }
 }
 
-// Last page: Thank You — hardcoded full-bleed image
+// Last page: Thank You — hardcoded full-bleed image + clickable link
 function drawThankYouPage(doc, thankYouDataUrl) {
   doc.addImage(thankYouDataUrl, 'JPEG', 0, 0, W, H);
+
+  // Transparent clickable box over the terracotta "THANK YOU" area (bottom-right)
+  doc.link(W * 0.55, H * 0.72, W * 0.35, H * 0.25, { url: 'https://www.intaradesigns.com' });
 }
 
 /**
  * Generate the proposal PDF.
  */
-export async function generatePdf({ clientName, roomName, imageSrcs, accentColor, onProgress }) {
+export async function generatePdf({ clientName, roomName, siteLocation, imageSrcs, accentColor, onProgress }) {
   const totalSteps = imageSrcs.length + 3; // cover + title + images + thankyou
   let step = 0;
   const report = () => {
@@ -165,7 +180,7 @@ export async function generatePdf({ clientName, roomName, imageSrcs, accentColor
 
   // 2. Title page (solid beige + text)
   doc.addPage();
-  drawTitlePage(doc, clientName, roomName);
+  drawTitlePage(doc, clientName, roomName, siteLocation);
   report();
 
   // 3. Image pages (user uploads, cover-fit centered)

@@ -17,7 +17,7 @@ function PreviewCover() {
   );
 }
 
-function PreviewTitle({ clientName, roomName }) {
+function PreviewTitle({ clientName, roomName, siteLocation }) {
   return (
     <div
       className="w-full aspect-[297/210] rounded-lg overflow-hidden flex items-end justify-end p-4 sm:p-6"
@@ -33,6 +33,11 @@ function PreviewTitle({ clientName, roomName }) {
         <p className="text-[7px] sm:text-[9px] tracking-wider mt-1.5" style={{ color: ACCENT }}>
           {(roomName || '________').toUpperCase()}
         </p>
+        {siteLocation && (
+          <p className="text-[6px] sm:text-[8px] tracking-wider mt-1.5" style={{ color: ACCENT }}>
+            {siteLocation.toUpperCase()}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -66,6 +71,7 @@ function PreviewThankYou() {
 function App() {
   const [clientName, setClientName] = useState('');
   const [roomName, setRoomName] = useState('');
+  const [siteLocation, setSiteLocation] = useState('');
   const [images, setImages] = useState([]);
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -124,6 +130,7 @@ function App() {
       await generatePdf({
         clientName: clientName.trim(),
         roomName: roomName.trim(),
+        siteLocation: siteLocation.trim(),
         imageSrcs: images.map((i) => i.url),
         accentColor: ACCENT,
         onProgress: setProgress,
@@ -175,7 +182,7 @@ function App() {
         {/* Client Details */}
         <section className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-text-muted">Client Details</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-text-muted mb-1.5">Client Name</label>
               <input
@@ -193,6 +200,16 @@ function App() {
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
                 placeholder="e.g. Master Bedroom"
+                className="w-full bg-surface border border-border rounded-lg px-3 py-2.5 text-sm text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1.5">Site Location</label>
+              <input
+                type="text"
+                value={siteLocation}
+                onChange={(e) => setSiteLocation(e.target.value)}
+                placeholder="e.g. Ahmedabad, Gujarat"
                 className="w-full bg-surface border border-border rounded-lg px-3 py-2.5 text-sm text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent"
               />
             </div>
@@ -317,7 +334,7 @@ function App() {
 
               {/* Title */}
               <div className="space-y-1.5">
-                <PreviewTitle clientName={clientName} roomName={roomName} />
+                <PreviewTitle clientName={clientName} roomName={roomName} siteLocation={siteLocation} />
                 <p className="text-[10px] text-text-muted text-center">2 — Title</p>
               </div>
 
