@@ -23,7 +23,8 @@ function loadImage(src) {
 }
 
 // Convert image to data URL with cover-fit crop (centered)
-function imgToCoverDataUrl(img, targetW = 1920, targetH = 1080) {
+// Target ratio matches A4 landscape (297:210 = 1.4143)
+function imgToCoverDataUrl(img, targetW = 2970, targetH = 2100) {
   const srcW = img.naturalWidth;
   const srcH = img.naturalHeight;
   const targetRatio = targetW / targetH;
