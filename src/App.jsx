@@ -1,92 +1,63 @@
 import { useState, useRef, useCallback } from 'react';
 import { generatePdf } from './generatePdf';
+import coverImg from './assets/cover.jpg';
+import thankyouImg from './assets/thankyou.jpg';
+import logoWhite from './assets/logo-white.png';
 
-const DEFAULT_BRANDING = {
-  companyName: 'INTARA DESIGNS',
-  tagline: 'INTERIOR | ARCHITECTURAL | PLANNING',
-  website: 'www.intaradesigns.com',
-  instagram: '@intara_designs',
-  accentColor: '#C0623A',
-  bgColor: '#0e0e0e',
-};
+const ACCENT = '#C0623A';
+const TITLE_BG = '#EDE0D4';
 
 // --- PDF Preview Components ---
 
-function PreviewCover({ branding, logoUrl }) {
+function PreviewCover() {
+  return (
+    <div className="w-full aspect-[297/210] rounded-lg overflow-hidden">
+      <img src={coverImg} alt="Cover" className="w-full h-full object-cover" />
+    </div>
+  );
+}
+
+function PreviewTitle({ clientName, roomName }) {
   return (
     <div
-      className="w-full aspect-[297/210] rounded-lg overflow-hidden flex flex-col items-center justify-center gap-2 p-6"
-      style={{ backgroundColor: branding.bgColor }}
+      className="w-full aspect-[297/210] rounded-lg overflow-hidden flex items-end justify-end p-4 sm:p-6"
+      style={{ backgroundColor: TITLE_BG }}
     >
-      {logoUrl && <img src={logoUrl} alt="Logo" className="h-8 w-8 object-contain" />}
-      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
-      <p className="text-white text-[10px] sm:text-xs font-bold tracking-wider text-center">{branding.companyName}</p>
-      <p className="text-[7px] sm:text-[8px] text-gray-400 tracking-wider text-center">{branding.tagline}</p>
-      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
-      <div className="mt-2 text-center">
-        <p className="text-[6px] sm:text-[7px] text-gray-500">{branding.website}</p>
-        <p className="text-[6px] sm:text-[7px] text-gray-500">{branding.instagram}</p>
+      <div className="text-right">
+        <p className="text-[8px] sm:text-[10px] font-bold tracking-wider" style={{ color: ACCENT }}>
+          PROPOSAL 3D FOR
+        </p>
+        <p className="text-[7px] sm:text-[9px] tracking-wider mt-0.5" style={{ color: ACCENT }}>
+          MR. {(clientName || '________').toUpperCase()}
+        </p>
+        <p className="text-[7px] sm:text-[9px] tracking-wider mt-1.5" style={{ color: ACCENT }}>
+          {(roomName || '________').toUpperCase()}
+        </p>
       </div>
     </div>
   );
 }
 
-function PreviewTitle({ clientName, roomName, branding, logoUrl }) {
-  return (
-    <div
-      className="w-full aspect-[297/210] rounded-lg overflow-hidden flex flex-col items-center justify-center gap-1 p-6"
-      style={{ backgroundColor: branding.bgColor }}
-    >
-      {logoUrl && <img src={logoUrl} alt="Logo" className="h-6 w-6 object-contain mb-1" />}
-      <p className="text-[7px] sm:text-[8px] text-gray-400 tracking-widest">PROPOSAL 3D FOR</p>
-      <p className="text-white text-[10px] sm:text-sm font-bold tracking-wider text-center">
-        MR. {(clientName || '________').toUpperCase()}
-      </p>
-      <p className="text-[8px] sm:text-[10px] tracking-wider text-center" style={{ color: branding.accentColor }}>
-        {(roomName || '________').toUpperCase()}
-      </p>
-      <div className="w-10 h-px mt-1" style={{ backgroundColor: branding.accentColor }} />
-    </div>
-  );
-}
-
-function PreviewImage({ imageUrl, index, branding, logoUrl }) {
+function PreviewImage({ imageUrl, index }) {
   return (
     <div className="w-full aspect-[297/210] rounded-lg overflow-hidden relative">
       <img src={imageUrl} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
-      {/* Gradient overlay */}
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
-      {/* View badge */}
       <span
         className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[6px] sm:text-[7px] font-bold text-white"
-        style={{ backgroundColor: branding.accentColor }}
+        style={{ backgroundColor: ACCENT }}
       >
         VIEW {String(index + 1).padStart(2, '0')}
       </span>
-      {/* Watermark */}
-      {logoUrl ? (
-        <img src={logoUrl} alt="Logo" className="absolute bottom-2 right-2 h-4 w-4 object-contain opacity-50" />
-      ) : (
-        <span className="absolute bottom-2 right-2 text-[5px] text-white/50">{branding.companyName}</span>
-      )}
+      <img src={logoWhite} alt="Watermark" className="absolute bottom-2 right-2 h-3 sm:h-4 object-contain opacity-45" />
     </div>
   );
 }
 
-function PreviewThankYou({ branding, logoUrl }) {
+function PreviewThankYou() {
   return (
-    <div
-      className="w-full aspect-[297/210] rounded-lg overflow-hidden flex flex-col items-center justify-center gap-2 p-6"
-      style={{ backgroundColor: branding.bgColor }}
-    >
-      {logoUrl && <img src={logoUrl} alt="Logo" className="h-7 w-7 object-contain" />}
-      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
-      <p className="text-white text-[10px] sm:text-xs font-bold tracking-wider">THANK YOU</p>
-      <div className="w-12 h-px" style={{ backgroundColor: branding.accentColor }} />
-      <div className="mt-2 text-center">
-        <p className="text-[6px] sm:text-[7px] text-gray-400">{branding.website}</p>
-        <p className="text-[6px] sm:text-[7px] text-gray-500">{branding.instagram}</p>
-      </div>
+    <div className="w-full aspect-[297/210] rounded-lg overflow-hidden">
+      <img src={thankyouImg} alt="Thank You" className="w-full h-full object-cover" />
     </div>
   );
 }
@@ -97,14 +68,10 @@ function App() {
   const [clientName, setClientName] = useState('');
   const [roomName, setRoomName] = useState('');
   const [images, setImages] = useState([]);
-  const [branding, setBranding] = useState(DEFAULT_BRANDING);
-  const [logo, setLogo] = useState(null); // { file, url }
-  const [brandingOpen, setBrandingOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
-  const logoInputRef = useRef(null);
   const idCounter = useRef(0);
 
   const addFiles = useCallback((files) => {
@@ -148,19 +115,6 @@ function App() {
     setDragOver(true);
   };
 
-  const handleLogoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    if (logo) URL.revokeObjectURL(logo.url);
-    setLogo({ file, url: URL.createObjectURL(file) });
-    e.target.value = '';
-  };
-
-  const removeLogo = () => {
-    if (logo) URL.revokeObjectURL(logo.url);
-    setLogo(null);
-  };
-
   const canGenerate = clientName.trim() && roomName.trim() && images.length >= 1;
 
   const handleGenerate = async () => {
@@ -172,8 +126,7 @@ function App() {
         clientName: clientName.trim(),
         roomName: roomName.trim(),
         imageSrcs: images.map((i) => i.url),
-        branding,
-        logoSrc: logo?.url || null,
+        accentColor: ACCENT,
         onProgress: setProgress,
       });
     } catch (err) {
@@ -185,27 +138,25 @@ function App() {
     }
   };
 
-  const updateBranding = (key, value) => {
-    setBranding((prev) => ({ ...prev, [key]: value }));
-  };
-
   const totalPages = 2 + images.length + 1;
 
   return (
     <div className="min-h-screen bg-bg text-text">
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 bg-bg/90 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold tracking-wide" style={{ fontFamily: 'var(--font-display)' }}>
-            Proposal Generator
-          </h1>
-          <p className="text-xs text-text-muted">by {branding.companyName}</p>
+        <div className="flex items-center gap-3">
+          <img src={logoWhite} alt="INTARA" className="h-5 sm:h-6 object-contain" />
+          <div>
+            <h1 className="text-sm sm:text-lg font-bold tracking-wide" style={{ fontFamily: 'var(--font-display)' }}>
+              Proposal Generator
+            </h1>
+          </div>
         </div>
         <button
           onClick={handleGenerate}
           disabled={!canGenerate || generating}
           className="px-5 py-2.5 rounded-lg font-semibold text-sm text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          style={{ backgroundColor: canGenerate && !generating ? branding.accentColor : '#555' }}
+          style={{ backgroundColor: canGenerate && !generating ? ACCENT : '#555' }}
         >
           {generating ? 'Generating...' : 'Download PDF'}
         </button>
@@ -216,7 +167,7 @@ function App() {
         <div className="w-full h-1 bg-surface">
           <div
             className="h-full transition-all duration-300 ease-out"
-            style={{ width: `${progress}%`, backgroundColor: branding.accentColor }}
+            style={{ width: `${progress}%`, backgroundColor: ACCENT }}
           />
         </div>
       )}
@@ -351,163 +302,44 @@ function App() {
           />
         </section>
 
-        {/* Company Branding (Expandable) */}
-        <section className="space-y-3">
-          <button
-            onClick={() => setBrandingOpen(!brandingOpen)}
-            className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-text-muted hover:text-text transition cursor-pointer w-full"
-          >
-            <span className="transition-transform inline-block" style={{ transform: brandingOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-              &#9654;
-            </span>
-            Company Branding
-          </button>
+        {/* Live PDF Preview — only shows after images are uploaded */}
+        {images.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-text-muted">
+              PDF Preview ({totalPages} pages)
+            </h2>
 
-          {brandingOpen && (
-            <div className="space-y-4 bg-surface border border-border rounded-xl p-5">
-              {/* Logo Upload */}
-              <div>
-                <label className="block text-xs text-text-muted mb-1.5">Company Logo</label>
-                <div className="flex items-center gap-3">
-                  {logo ? (
-                    <div className="flex items-center gap-3">
-                      <img src={logo.url} alt="Logo" className="h-12 w-12 object-contain bg-bg rounded-lg border border-border p-1" />
-                      <button
-                        onClick={removeLogo}
-                        className="text-xs text-red-400 hover:text-red-300 transition cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => logoInputRef.current?.click()}
-                      className="text-xs px-3 py-2 rounded-lg border border-dashed border-border text-text-muted hover:text-text hover:border-accent transition cursor-pointer"
-                    >
-                      Upload Logo (PNG/SVG)
-                    </button>
-                  )}
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                  />
-                </div>
-                <p className="text-[10px] text-text-muted/50 mt-1">Appears on cover, title, thank-you pages and as watermark on images</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* Cover */}
+              <div className="space-y-1.5">
+                <PreviewCover />
+                <p className="text-[10px] text-text-muted text-center">1 — Cover</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-text-muted mb-1.5">Company Name</label>
-                  <input
-                    type="text"
-                    value={branding.companyName}
-                    onChange={(e) => updateBranding('companyName', e.target.value)}
-                    className="w-full bg-bg border border-border rounded-lg px-3 py-2.5 text-sm text-text focus:outline-none focus:border-accent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-text-muted mb-1.5">Tagline</label>
-                  <input
-                    type="text"
-                    value={branding.tagline}
-                    onChange={(e) => updateBranding('tagline', e.target.value)}
-                    className="w-full bg-bg border border-border rounded-lg px-3 py-2.5 text-sm text-text focus:outline-none focus:border-accent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-text-muted mb-1.5">Website</label>
-                  <input
-                    type="text"
-                    value={branding.website}
-                    onChange={(e) => updateBranding('website', e.target.value)}
-                    className="w-full bg-bg border border-border rounded-lg px-3 py-2.5 text-sm text-text focus:outline-none focus:border-accent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-text-muted mb-1.5">Instagram</label>
-                  <input
-                    type="text"
-                    value={branding.instagram}
-                    onChange={(e) => updateBranding('instagram', e.target.value)}
-                    className="w-full bg-bg border border-border rounded-lg px-3 py-2.5 text-sm text-text focus:outline-none focus:border-accent"
-                  />
-                </div>
+              {/* Title */}
+              <div className="space-y-1.5">
+                <PreviewTitle clientName={clientName} roomName={roomName} />
+                <p className="text-[10px] text-text-muted text-center">2 — Title</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-text-muted mb-1.5">Accent Color</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={branding.accentColor}
-                      onChange={(e) => updateBranding('accentColor', e.target.value)}
-                      className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent"
-                    />
-                    <span className="text-xs text-text-muted font-mono">{branding.accentColor}</span>
-                  </div>
+
+              {/* Image pages */}
+              {images.map((img, i) => (
+                <div key={img.id} className="space-y-1.5">
+                  <PreviewImage imageUrl={img.url} index={i} />
+                  <p className="text-[10px] text-text-muted text-center">
+                    {i + 3} — View {String(i + 1).padStart(2, '0')}
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs text-text-muted mb-1.5">PDF Background Color</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={branding.bgColor}
-                      onChange={(e) => updateBranding('bgColor', e.target.value)}
-                      className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent"
-                    />
-                    <span className="text-xs text-text-muted font-mono">{branding.bgColor}</span>
-                  </div>
-                </div>
+              ))}
+
+              {/* Thank You */}
+              <div className="space-y-1.5">
+                <PreviewThankYou />
+                <p className="text-[10px] text-text-muted text-center">{totalPages} — Thank You</p>
               </div>
-              <button
-                onClick={() => { setBranding(DEFAULT_BRANDING); removeLogo(); }}
-                className="text-xs text-text-muted hover:text-accent transition cursor-pointer"
-              >
-                Reset to defaults
-              </button>
             </div>
-          )}
-        </section>
-
-        {/* Live PDF Preview */}
-        <section className="space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-widest text-text-muted">
-            PDF Preview ({totalPages} pages)
-          </h2>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {/* Cover */}
-            <div className="space-y-1.5">
-              <PreviewCover branding={branding} logoUrl={logo?.url} />
-              <p className="text-[10px] text-text-muted text-center">1 — Cover</p>
-            </div>
-
-            {/* Title */}
-            <div className="space-y-1.5">
-              <PreviewTitle clientName={clientName} roomName={roomName} branding={branding} logoUrl={logo?.url} />
-              <p className="text-[10px] text-text-muted text-center">2 — Title</p>
-            </div>
-
-            {/* Image pages */}
-            {images.map((img, i) => (
-              <div key={img.id} className="space-y-1.5">
-                <PreviewImage imageUrl={img.url} index={i} branding={branding} logoUrl={logo?.url} />
-                <p className="text-[10px] text-text-muted text-center">
-                  {i + 3} — View {String(i + 1).padStart(2, '0')}
-                </p>
-              </div>
-            ))}
-
-            {/* Thank You */}
-            <div className="space-y-1.5">
-              <PreviewThankYou branding={branding} logoUrl={logo?.url} />
-              <p className="text-[10px] text-text-muted text-center">{totalPages} — Thank You</p>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Validation Hints */}
         {!canGenerate && (
@@ -522,7 +354,7 @@ function App() {
       {/* Footer */}
       <footer className="border-t border-border py-6 mt-12">
         <p className="text-center text-xs text-text-muted/40">
-          {branding.companyName} Proposal Generator
+          INTARA DESIGNS — Proposal Generator
         </p>
       </footer>
     </div>

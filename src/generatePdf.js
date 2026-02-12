@@ -1,8 +1,16 @@
 import { jsPDF } from 'jspdf';
+import coverImg from './assets/cover.jpg';
+import thankyouImg from './assets/thankyou.jpg';
+import logoWhite from './assets/logo-white.png';
 
 // A4 landscape dimensions in mm
 const W = 297;
 const H = 210;
+
+// Title page background color (beige/cream from reference)
+const TITLE_BG = '#EDE0D4';
+// Text color on title page (terracotta)
+const TITLE_TEXT = '#C0623A';
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -24,11 +32,9 @@ function imgToCoverDataUrl(img, targetW = 1920, targetH = 1080) {
   let cropX = 0, cropY = 0, cropW = srcW, cropH = srcH;
 
   if (srcRatio > targetRatio) {
-    // Image is wider — crop sides, keep full height
     cropW = Math.round(srcH * targetRatio);
     cropX = Math.round((srcW - cropW) / 2);
   } else {
-    // Image is taller — crop top/bottom, keep full width
     cropH = Math.round(srcW / targetRatio);
     cropY = Math.round((srcH - cropH) / 2);
   }
@@ -41,107 +47,57 @@ function imgToCoverDataUrl(img, targetW = 1920, targetH = 1080) {
   return canvas.toDataURL('image/jpeg', 0.85);
 }
 
-// Draw a dark page background
-function drawDarkBg(doc, bgColor) {
-  doc.setFillColor(bgColor);
+// Convert any image src to a base64 data URL
+function imgToDataUrl(img) {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  return canvas.toDataURL('image/jpeg', 0.92);
+}
+
+function imgToPngDataUrl(img) {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
+// Page 1: Cover — hardcoded full-bleed image
+function drawCoverPage(doc, coverDataUrl) {
+  doc.addImage(coverDataUrl, 'JPEG', 0, 0, W, H);
+}
+
+// Page 2: Title — solid beige bg, text positioned right-of-center
+function drawTitlePage(doc, clientName, roomName) {
+  // Solid beige background
+  doc.setFillColor(TITLE_BG);
   doc.rect(0, 0, W, H, 'F');
-}
 
-// Cover page: dark bg, logo, company name, tagline, website, instagram
-function drawCoverPage(doc, branding, logoDataUrl) {
-  drawDarkBg(doc, branding.bgColor);
+  // Text block positioned at ~60% from left, ~60% from top (matching reference)
+  const textX = W * 0.58;
+  const textY = H * 0.58;
 
-  let contentY = 70;
-
-  // Logo
-  if (logoDataUrl) {
-    const logoH = 22;
-    const logoW = 22;
-    doc.addImage(logoDataUrl, 'PNG', W / 2 - logoW / 2, contentY, logoW, logoH);
-    contentY += logoH + 8;
-  }
-
-  // Accent line
-  doc.setDrawColor(branding.accentColor);
-  doc.setLineWidth(0.8);
-  doc.line(W / 2 - 30, contentY, W / 2 + 30, contentY);
-  contentY += 17;
-
-  // Company name
-  doc.setTextColor('#FFFFFF');
-  doc.setFontSize(36);
+  // "PROPOSAL 3D FOR" — bold, terracotta
+  doc.setTextColor(TITLE_TEXT);
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(branding.companyName, W / 2, contentY, { align: 'center' });
-  contentY += 13;
+  doc.text('PROPOSAL 3D FOR', textX, textY, { align: 'left' });
 
-  // Tagline
-  doc.setFontSize(11);
+  // "MR. CLIENT NAME" — normal weight, terracotta
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor('#CCCCCC');
-  doc.text(branding.tagline, W / 2, contentY, { align: 'center' });
-  contentY += 7;
+  doc.text(`MR. ${clientName.toUpperCase()}`, textX, textY + 12, { align: 'left' });
 
-  // Accent line below tagline
-  doc.setDrawColor(branding.accentColor);
-  doc.line(W / 2 - 30, contentY, W / 2 + 30, contentY);
-  contentY += 20;
-
-  // Website
-  doc.setFontSize(9);
-  doc.setTextColor('#999999');
-  doc.text(branding.website, W / 2, contentY, { align: 'center' });
-  contentY += 7;
-
-  // Instagram
-  doc.setFontSize(9);
-  doc.text(branding.instagram, W / 2, contentY, { align: 'center' });
+  // Room name — normal weight, terracotta, with slight gap
+  doc.setFontSize(14);
+  doc.text(roomName.toUpperCase(), textX, textY + 28, { align: 'left' });
 }
 
-// Title page: PROPOSAL 3D FOR / CLIENT NAME / ROOM NAME
-function drawTitlePage(doc, clientName, roomName, branding, logoDataUrl) {
-  drawDarkBg(doc, branding.bgColor);
-
-  let contentY = 72;
-
-  // Logo
-  if (logoDataUrl) {
-    const logoH = 18;
-    const logoW = 18;
-    doc.addImage(logoDataUrl, 'PNG', W / 2 - logoW / 2, contentY - 25, logoW, logoH);
-  }
-
-  // "PROPOSAL 3D FOR"
-  doc.setTextColor('#999999');
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'normal');
-  doc.text('PROPOSAL 3D FOR', W / 2, contentY + 8, { align: 'center' });
-
-  // Client name
-  doc.setTextColor('#FFFFFF');
-  doc.setFontSize(32);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`MR. ${clientName.toUpperCase()}`, W / 2, contentY + 28, { align: 'center' });
-
-  // Room name
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(branding.accentColor);
-  doc.text(roomName.toUpperCase(), W / 2, contentY + 43, { align: 'center' });
-
-  // Decorative line
-  doc.setDrawColor(branding.accentColor);
-  doc.setLineWidth(0.8);
-  doc.line(W / 2 - 25, contentY + 50, W / 2 + 25, contentY + 50);
-
-  // Company name small at bottom
-  doc.setFontSize(8);
-  doc.setTextColor('#666666');
-  doc.text(branding.companyName, W / 2, 185, { align: 'center' });
-}
-
-// Image page: cover-fit centered image with gradient overlay, view badge, logo watermark
-function drawImagePage(doc, dataUrl, index, branding, logoDataUrl) {
-  // Full-bleed cover-fit image (already cropped/centered)
+// Image pages: cover-fit centered image with gradient overlay, view badge, logo watermark
+function drawImagePage(doc, dataUrl, index, accentColor, logoDataUrl) {
+  // Full-bleed cover-fit image
   doc.addImage(dataUrl, 'JPEG', 0, 0, W, H);
 
   // Gradient overlay at bottom
@@ -164,7 +120,7 @@ function drawImagePage(doc, dataUrl, index, branding, logoDataUrl) {
   const badgeX = 12;
   const badgeY = H - 16;
 
-  doc.setFillColor(branding.accentColor);
+  doc.setFillColor(accentColor);
   doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 1.5, 1.5, 'F');
 
   doc.setTextColor('#FFFFFF');
@@ -172,103 +128,42 @@ function drawImagePage(doc, dataUrl, index, branding, logoDataUrl) {
   doc.setFont('helvetica', 'bold');
   doc.text(badgeText, badgeX + badgeW / 2, badgeY + 5.5, { align: 'center' });
 
-  // Logo watermark (bottom-right) — use logo image if available, else text
+  // Logo watermark (bottom-right)
   if (logoDataUrl) {
-    const wmH = 10;
-    const wmW = 10;
-    doc.setGState(new doc.GState({ opacity: 0.5 }));
-    doc.addImage(logoDataUrl, 'PNG', W - 12 - wmW, H - 10 - wmH, wmW, wmH);
-    doc.setGState(new doc.GState({ opacity: 1 }));
-  } else {
-    doc.setFontSize(6);
-    doc.setTextColor('#FFFFFF');
-    doc.setGState(new doc.GState({ opacity: 0.5 }));
-    doc.text(branding.companyName, W - 12, H - 10, { align: 'right' });
+    const wmW = 28;
+    const wmH = 9; // aspect ratio ~3.14:1
+    doc.setGState(new doc.GState({ opacity: 0.45 }));
+    doc.addImage(logoDataUrl, 'PNG', W - 12 - wmW, H - 8 - wmH, wmW, wmH);
     doc.setGState(new doc.GState({ opacity: 1 }));
   }
 }
 
-// Thank you page
-function drawThankYouPage(doc, branding, logoDataUrl) {
-  drawDarkBg(doc, branding.bgColor);
-
-  let contentY = 68;
-
-  // Logo
-  if (logoDataUrl) {
-    const logoH = 20;
-    const logoW = 20;
-    doc.addImage(logoDataUrl, 'PNG', W / 2 - logoW / 2, contentY, logoW, logoH);
-    contentY += logoH + 8;
-  }
-
-  // Accent line above
-  doc.setDrawColor(branding.accentColor);
-  doc.setLineWidth(0.8);
-  doc.line(W / 2 - 30, contentY, W / 2 + 30, contentY);
-  contentY += 20;
-
-  // THANK YOU
-  doc.setTextColor('#FFFFFF');
-  doc.setFontSize(36);
-  doc.setFont('helvetica', 'bold');
-  doc.text('THANK YOU', W / 2, contentY, { align: 'center' });
-  contentY += 8;
-
-  // Accent line below
-  doc.setDrawColor(branding.accentColor);
-  doc.line(W / 2 - 30, contentY, W / 2 + 30, contentY);
-  contentY += 20;
-
-  // Website
-  doc.setFontSize(10);
-  doc.setTextColor('#CCCCCC');
-  doc.text(branding.website, W / 2, contentY, { align: 'center' });
-  contentY += 8;
-
-  // Instagram
-  doc.setFontSize(10);
-  doc.setTextColor('#999999');
-  doc.text(branding.instagram, W / 2, contentY, { align: 'center' });
-
-  // Company branding at bottom
-  doc.setFontSize(7);
-  doc.setTextColor('#555555');
-  doc.text(branding.companyName, W / 2, 185, { align: 'center' });
+// Last page: Thank You — hardcoded full-bleed image
+function drawThankYouPage(doc, thankYouDataUrl) {
+  doc.addImage(thankYouDataUrl, 'JPEG', 0, 0, W, H);
 }
 
 /**
  * Generate the proposal PDF.
- * @param {Object} params
- * @param {string} params.clientName
- * @param {string} params.roomName
- * @param {Array<string>} params.imageSrcs - array of data URLs or object URLs
- * @param {Object} params.branding
- * @param {string|null} params.logoSrc - logo data URL or object URL
- * @param {function} params.onProgress - callback(percent: 0-100)
- * @returns {Promise<void>}
  */
-export async function generatePdf({ clientName, roomName, imageSrcs, branding, logoSrc, onProgress }) {
-  const totalSteps = imageSrcs.length + 3;
+export async function generatePdf({ clientName, roomName, imageSrcs, accentColor, onProgress }) {
+  const totalSteps = imageSrcs.length + 3; // cover + title + images + thankyou
   let step = 0;
-
   const report = () => {
     step++;
     onProgress?.(Math.round((step / totalSteps) * 100));
   };
 
-  // Load logo if provided
-  let logoDataUrl = null;
-  if (logoSrc) {
-    try {
-      const logoImg = await loadImage(logoSrc);
-      const c = document.createElement('canvas');
-      c.width = logoImg.naturalWidth;
-      c.height = logoImg.naturalHeight;
-      c.getContext('2d').drawImage(logoImg, 0, 0);
-      logoDataUrl = c.toDataURL('image/png');
-    } catch { /* no logo */ }
-  }
+  // Pre-load all hardcoded assets
+  const [coverImgEl, thankyouImgEl, logoImgEl] = await Promise.all([
+    loadImage(coverImg),
+    loadImage(thankyouImg),
+    loadImage(logoWhite),
+  ]);
+
+  const coverDataUrl = imgToDataUrl(coverImgEl);
+  const thankyouDataUrl = imgToDataUrl(thankyouImgEl);
+  const logoDataUrl = imgToPngDataUrl(logoImgEl);
 
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -276,27 +171,27 @@ export async function generatePdf({ clientName, roomName, imageSrcs, branding, l
     format: 'a4',
   });
 
-  // 1. Cover page
-  drawCoverPage(doc, branding, logoDataUrl);
+  // 1. Cover page (hardcoded image)
+  drawCoverPage(doc, coverDataUrl);
   report();
 
-  // 2. Title page
+  // 2. Title page (solid beige + text)
   doc.addPage();
-  drawTitlePage(doc, clientName, roomName, branding, logoDataUrl);
+  drawTitlePage(doc, clientName, roomName);
   report();
 
-  // 3. Image pages (cover-fit centered)
+  // 3. Image pages (user uploads, cover-fit centered)
   for (let i = 0; i < imageSrcs.length; i++) {
     doc.addPage();
     const img = await loadImage(imageSrcs[i]);
     const dataUrl = imgToCoverDataUrl(img);
-    drawImagePage(doc, dataUrl, i, branding, logoDataUrl);
+    drawImagePage(doc, dataUrl, i, accentColor, logoDataUrl);
     report();
   }
 
-  // 4. Thank you page
+  // 4. Thank You page (hardcoded image)
   doc.addPage();
-  drawThankYouPage(doc, branding, logoDataUrl);
+  drawThankYouPage(doc, thankyouDataUrl);
   report();
 
   // Save
