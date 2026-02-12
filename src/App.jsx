@@ -42,7 +42,6 @@ function PreviewImage({ imageUrl, index }) {
   return (
     <div className="w-full aspect-[297/210] rounded-lg overflow-hidden relative">
       <img src={imageUrl} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
-      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
       <span
         className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[6px] sm:text-[7px] font-bold text-white"
         style={{ backgroundColor: ACCENT }}

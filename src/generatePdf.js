@@ -101,19 +101,6 @@ function drawImagePage(doc, dataUrl, index, accentColor, logoDataUrl) {
   // Full-bleed cover-fit image
   doc.addImage(dataUrl, 'JPEG', 0, 0, W, H);
 
-  // Gradient overlay at bottom — use many thin steps for smooth result
-  const gradientSteps = 150;
-  const gradientHeight = 55;
-  const stepH = gradientHeight / gradientSteps;
-  for (let i = 0; i < gradientSteps; i++) {
-    const alpha = (i / gradientSteps) * 0.75;
-    const y = H - gradientHeight + i * stepH;
-    doc.setFillColor(0, 0, 0);
-    doc.setGState(new doc.GState({ opacity: alpha }));
-    doc.rect(0, y, W, stepH + 0.1, 'F'); // +0.1 to avoid sub-pixel gaps
-  }
-  doc.setGState(new doc.GState({ opacity: 1 }));
-
   // View badge (bottom-left)
   const badgeText = `VIEW ${String(index + 1).padStart(2, '0')}`;
   const badgeW = 32;
