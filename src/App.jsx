@@ -30,11 +30,11 @@ function PreviewTitle({ clientName, roomName, siteLocation }) {
         <p className="text-[7px] sm:text-[9px] tracking-wider mt-0.5" style={{ color: ACCENT }}>
           MR. {(clientName || '________').toUpperCase()}
         </p>
-        <p className="text-[7px] sm:text-[9px] tracking-wider mt-1.5" style={{ color: ACCENT }}>
+        <p className="text-[7px] sm:text-[9px] tracking-wider mt-0.5" style={{ color: ACCENT }}>
           {(roomName || '________').toUpperCase()}
         </p>
         {siteLocation && (
-          <p className="text-[6px] sm:text-[8px] tracking-wider mt-1.5" style={{ color: ACCENT }}>
+          <p className="text-[6px] sm:text-[8px] tracking-wider mt-0.5" style={{ color: ACCENT }}>
             {siteLocation.toUpperCase()}
           </p>
         )}

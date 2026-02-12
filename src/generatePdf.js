@@ -95,16 +95,16 @@ function drawTitlePage(doc, clientName, roomName, siteLocation) {
   // "MR. CLIENT NAME" — normal weight, terracotta
   doc.setFontSize(14);
   doc.setFont('helvetica', 'normal');
-  doc.text(`MR. ${clientName.toUpperCase()}`, textX, textY + 12, { align: 'left' });
+  doc.text(`MR. ${clientName.toUpperCase()}`, textX, textY + 8, { align: 'left' });
 
-  // Room name — normal weight, terracotta, with slight gap
+  // Room name — normal weight, terracotta
   doc.setFontSize(14);
-  doc.text(roomName.toUpperCase(), textX, textY + 28, { align: 'left' });
+  doc.text(roomName.toUpperCase(), textX, textY + 18, { align: 'left' });
 
   // Site location — smaller, below room name
   if (siteLocation) {
     doc.setFontSize(11);
-    doc.text(siteLocation.toUpperCase(), textX, textY + 42, { align: 'left' });
+    doc.text(siteLocation.toUpperCase(), textX, textY + 28, { align: 'left' });
   }
 }
 
