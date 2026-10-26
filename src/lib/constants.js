@@ -15,11 +15,6 @@ export const COLORS = {
   white: '#FFFFFF',
 };
 
-export const QUALITY = {
-  share: { label: 'Share', hint: 'Smaller file for WhatsApp and email', dpi: 200, jpeg: 0.82 },
-  print: { label: 'Print', hint: 'Full resolution for printing', dpi: 300, jpeg: 0.9 },
-};
-
 // Below this, a render looks soft on the page.
 export const LOW_DPI = 150;
 
@@ -27,6 +22,6 @@ export const SALUTATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Mr. & Mrs.', 'Dr.', ''];
 
 export const BRAND = {
   name: 'INTARA DESIGNS',
-  website: 'https://www.intaradesigns.com',
+  website: 'https://intaradesigns.in',
   instagram: 'https://www.instagram.com/intara_designs',
 };

@@ -17,7 +17,6 @@ export function emptyState() {
       siteLocation: '',
       date: today(),
       revision: 1,
-      quality: 'share',
       rooms: [newRoom()],
     },
     images: {},
