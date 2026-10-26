@@ -1,7 +1,7 @@
 // Draws the page specs from layout.js into a PDF. jsPDF is loaded on first export.
 import { PAGE_W as W, PAGE_H as H, PT, BRAND } from './constants';
 import { FONTS } from './text';
-import { renderSlot } from './images';
+import { pdfImage } from './images';
 
 async function bytesOf(url) {
   return new Uint8Array(await (await fetch(url)).arrayBuffer());
@@ -16,7 +16,7 @@ async function base64Of(url) {
 
 const nextFrame = () => new Promise((r) => setTimeout(r, 0));
 
-export async function buildPdf({ pages, images, assets, quality, title, onProgress }) {
+export async function buildPdf({ pages, images, assets, title, onProgress }) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
 
@@ -42,9 +42,20 @@ export async function buildPdf({ pages, images, assets, quality, title, onProgre
         if (fixed[it.ref]) {
           doc.addImage(fixed[it.ref], 'JPEG', it.x, it.y, it.w, it.h, it.ref, 'NONE');
         } else {
-          const rec = images[it.ref];
-          const { bytes } = await renderSlot(rec, it.crop, it.w, quality);
-          doc.addImage(bytes, 'JPEG', it.x, it.y, it.w, it.h, `${page.key}-${it.ref}`, 'NONE');
+          // The whole image goes in at full resolution; a crop is a clip, never a resample.
+          const { bytes, format } = await pdfImage(images[it.ref]);
+          const w = it.w / it.crop.w;
+          const h = it.h / it.crop.h;
+          const cropped = it.crop.w < 1 || it.crop.h < 1;
+          if (cropped) {
+            doc.saveGraphicsState();
+            doc.rect(it.x, it.y, it.w, it.h, null);
+            doc.clip();
+            doc.discardPath();
+          }
+          const compression = format === 'PNG' ? 'MEDIUM' : 'NONE';
+          doc.addImage(bytes, format, it.x - it.crop.x * w, it.y - it.crop.y * h, w, h, `img-${it.ref}`, compression);
+          if (cropped) doc.restoreGraphicsState();
         }
         tick();
         await nextFrame();

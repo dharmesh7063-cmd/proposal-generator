@@ -31,7 +31,6 @@ function plan(rooms, projectExtra = {}) {
     siteLocation: 'Ahmedabad',
     date: '2026-10-08',
     revision: 1,
-    quality: 'share',
     rooms: projectRooms,
     ...projectExtra,
   };

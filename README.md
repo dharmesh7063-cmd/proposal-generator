@@ -19,8 +19,8 @@ A browser app that turns 3D renders into a branded A4 landscape PDF proposal for
 - **Rooms.** Add several rooms to one proposal. Each room gets a divider page, the title page lists them, and view numbers run across the whole proposal.
 - **Captions** for every view, shown beside or under the image.
 - **Title page details:** salutation (Mr., Mrs., Mr. & Mrs., none…), client, rooms, site location, date and revision (R2+ also goes into the file name).
-- **Image handling:** no upscaling, high-quality downscaling, transparent PNGs placed on white or black depending on the drawing, iPhone HEIC photos converted automatically, and a warning when an image is too low-resolution for its page.
-- **Two quality presets:** *Share* (200 dpi, small enough for WhatsApp and email) and *Print* (300 dpi), with a size estimate before you export.
+- **Image handling:** images go into the PDF at their full resolution, never downscaled or upscaled. Uploaded JPEGs are embedded byte for byte (no recompression); crops are clipping masks, not resamples. PNGs and other formats are embedded losslessly, transparent PNGs placed on white or black depending on the drawing. iPhone HEIC photos are converted automatically, and a warning shows when an image is too low-resolution for its page.
+- **Size estimate** before you export.
 - **Autosave** to the browser (IndexedDB), so a refresh doesn't lose your work. *New proposal* clears it.
 - **Share button** on devices that support sharing files (phones, Safari), which sends the PDF straight to WhatsApp, Mail and so on.
 

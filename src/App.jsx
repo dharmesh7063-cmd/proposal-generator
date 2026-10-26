@@ -1,19 +1,18 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import logoWhite from './assets/logo-white.png';
-import { QUALITY, SALUTATIONS } from './lib/constants';
+import { SALUTATIONS } from './lib/constants';
 import { loadFonts } from './lib/text';
 import { loadBrandAssets } from './lib/brandAssets';
 import { planPages, fileNameFor } from './lib/layout';
-import { importImage, ImportError, estimateSlotPixels, naturalCompare } from './lib/images';
+import { importImage, ImportError, estimatePdfBytes, naturalCompare } from './lib/images';
 import { clearAll, deleteImageBlobs, loadDraft, saveDraft, saveImageBlobs } from './lib/storage';
 import { emptyState, imageMeta, newId, reducer } from './state';
 import RoomCard from './components/RoomCard';
 import PageGrid from './components/PageGrid';
 import { Field, Icon } from './components/ui';
 
-// Rough JPEG bytes per output pixel for interior renders, plus fonts, logo and brand pages.
-const BYTES_PER_PX = { share: 0.13, print: 0.2 };
-const FIXED_BYTES = 650_000;
+// Fonts, logo and brand pages; images are added at their full size.
+const FIXED_BYTES = 550_000;
 
 const formatBytes = (n) => (n < 1e6 ? `${Math.max(1, Math.round(n / 1e3))} KB` : `${(n / 1e6).toFixed(1)} MB`);
 
@@ -42,32 +41,12 @@ function download(file) {
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
-function QualityToggle({ value, onChange, estimate }) {
+function SizeEstimate({ estimate }) {
+  if (!(estimate > 0)) return null;
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex rounded-lg border border-border p-0.5 text-xs" role="radiogroup" aria-label="PDF quality">
-        {Object.entries(QUALITY).map(([key, q]) => (
-          <button
-            key={key}
-            type="button"
-            role="radio"
-            aria-checked={value === key}
-            title={q.hint}
-            onClick={() => onChange(key)}
-            className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-              value === key ? 'bg-white/10 text-text' : 'text-text-muted hover:text-text'
-            }`}
-          >
-            {q.label}
-          </button>
-        ))}
-      </div>
-      {estimate > 0 && (
-        <span className="text-xs text-text-muted tabular-nums" title="Estimated file size">
-          ≈ {formatBytes(estimate)}
-        </span>
-      )}
-    </div>
+    <span className="text-xs text-text-muted tabular-nums" title="Estimated file size. Images go in at full resolution.">
+      ≈ {formatBytes(estimate)}
+    </span>
   );
 }
 
@@ -239,7 +218,8 @@ export default function App() {
     const views = {};
     const pairs = {};
     const lowDpi = {};
-    let px = 0;
+    const counted = new Set();
+    let bytes = 0;
     let n = 0;
     for (const page of pages) {
       if (page.kind !== 'view') continue;
@@ -251,11 +231,13 @@ export default function App() {
       for (const it of page.items) {
         if (it.type !== 'image') continue;
         lowDpi[it.ref] = Math.min(lowDpi[it.ref] ?? Infinity, it.dpi);
-        px += estimateSlotPixels(images[it.ref], it.crop, it.w, QUALITY[project.quality]);
+        if (counted.has(it.ref)) continue;
+        counted.add(it.ref);
+        bytes += estimatePdfBytes(images[it.ref]);
       }
     }
-    return { views, pairs, lowDpi, estimate: n ? FIXED_BYTES + px * BYTES_PER_PX[project.quality] : 0 };
-  }, [pages, images, project.quality]);
+    return { views, pairs, lowDpi, estimate: n ? FIXED_BYTES + bytes : 0 };
+  }, [pages, images]);
 
   const imageCount = Object.keys(views).length;
   const problems = [];
@@ -302,7 +284,6 @@ export default function App() {
           pages,
           images,
           assets,
-          quality: QUALITY[project.quality],
           title: `Proposal for ${[project.salutation, project.clientName.trim()].filter(Boolean).join(' ')}`,
           onProgress: setProgress,
         });
@@ -340,7 +321,7 @@ export default function App() {
           )}
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden sm:block">
-              <QualityToggle value={project.quality} onChange={(quality) => setProject({ quality })} estimate={estimate} />
+              <SizeEstimate estimate={estimate} />
             </div>
             {canShareFiles && (
               <button type="button" onClick={() => exportPdf('share')} disabled={busy} className="btn-secondary h-9 px-3">
@@ -354,9 +335,11 @@ export default function App() {
             </button>
           </div>
         </div>
-        <div className="sm:hidden px-4 pb-2.5 flex items-center justify-between">
-          <QualityToggle value={project.quality} onChange={(quality) => setProject({ quality })} estimate={estimate} />
-        </div>
+        {estimate > 0 && (
+          <div className="sm:hidden px-4 pb-2.5 flex items-center justify-between">
+            <SizeEstimate estimate={estimate} />
+          </div>
+        )}
         {busy && (
           <div className="h-0.5 bg-surface">
             <div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${progress * 100}%` }} />
